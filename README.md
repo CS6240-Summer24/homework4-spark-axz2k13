@@ -10,7 +10,7 @@ Author
 Installation
 ------------
 These components are installed:
-- OpenJDK 1.11
+- OpenJDK 11
 - Hadoop 3.3.5
 - Maven (Tested with version 3.6.3)
 - AWS CLI (Tested with version 1.22.34)
