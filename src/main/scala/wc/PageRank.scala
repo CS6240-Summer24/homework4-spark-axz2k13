@@ -15,6 +15,7 @@ object PageRankMain {
     }
     val conf = new SparkConf().setAppName("Word Count")
     val sc = new SparkContext(conf)
+    val k = 10
 
 		// Delete output directory, only to ease local development; will not work on AWS. ===========
 //    val hadoopConf = new org.apache.hadoop.conf.Configuration
