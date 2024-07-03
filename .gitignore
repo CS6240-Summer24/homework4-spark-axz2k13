@@ -1,2 +1,7 @@
 *.class
 *.log
+/.vscode
+/target
+/output
+/.metals
+/.bloop
