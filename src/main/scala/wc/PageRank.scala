@@ -22,7 +22,14 @@ object PageRankMain {
 //    val hdfs = org.apache.hadoop.fs.FileSystem.get(hadoopConf)
 //    try { hdfs.delete(new org.apache.hadoop.fs.Path(args(1)), true) } catch { case _: Throwable => {} }
 		// ================
-    
+    val fakeEdges = sc.parallelize(for (i <- 1 to k) yield (i * k, 0))
+    val graph = sc.parallelize(for (i <- 1 to k - 1) yield
+      for (j <- 1 to k - 1) 
+        yield ((i - 1)*k + j, (i - 1)*k + j + 1)).flatMap(line => line)
+                 .union(fakeEdges)
+                 
+    val ranks = sc.parallelize(for (i <- 0 to k*k) yield (i, if (i==0) 0 else 1/(k*k)))
+
     val textFile = sc.textFile(args(0))
     val counts = textFile.flatMap(line => line.split(" "))
                  .map(word => (word, 1))
