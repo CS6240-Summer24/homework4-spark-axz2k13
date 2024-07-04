@@ -32,7 +32,7 @@ object PageRankMain {
                  .flatMap(n => for (i <- 0 to k - 1) yield (n + i, n + i + 1))
                  .union(fakeEdges)
 
-    val ranks = sc.parallelize(for (i <- 0 to k*k) yield (i, if (i==0) 0 else 1/(k*k)))
+    val ranks = sc.parallelize(for (i <- 0 to k*k) yield (i, if (i==0) 0 else 1.asInstanceOf[Float]/(k*k)))
 
     val textFile = sc.textFile(args(0))
     val counts = textFile.flatMap(line => line.split(" "))
