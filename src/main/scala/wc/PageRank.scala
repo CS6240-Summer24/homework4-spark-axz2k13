@@ -28,7 +28,7 @@ object PageRankMain {
     //     yield ((i - 1)*k + j, (i - 1)*k + j + 1)).flatMap(line => line)
     //              .union(fakeEdges)
 
-    val graph = sc.parallelize(for (i <- 1 to k - 1) yield i)
+    val graph = sc.parallelize(for (i <- 1 to k) yield (i - 1)*k + 1)
                  .flatMap(n => for (i <- 0 to k - 1) yield (n + i, n + i + 1))
                  .union(fakeEdges)
 
