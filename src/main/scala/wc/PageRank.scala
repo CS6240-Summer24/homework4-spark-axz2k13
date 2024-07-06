@@ -16,7 +16,7 @@ object PageRankMain {
     val conf = new SparkConf().setAppName("Word Count")
     val sc = new SparkContext(conf)
     val k = 10
-
+    val ITERATIONS = 10
 		// Delete output directory, only to ease local development; will not work on AWS. ===========
 //    val hadoopConf = new org.apache.hadoop.conf.Configuration
 //    val hdfs = org.apache.hadoop.fs.FileSystem.get(hadoopConf)
@@ -34,14 +34,14 @@ object PageRankMain {
 
     var ranks = sc.parallelize(for (i <- 0 to k*k) yield (i, if (i==0) 0 else 1.asInstanceOf[Float]/(k*k)))
 
-    var intermediate = graph.join(ranks)
-                 .flatMap(line => Seq((line._1, 0.asInstanceOf[Float]), (line._2._1, line._2._2)))
-                 .aggregateByKey(0.asInstanceOf[Float])(_ + _, _ + _)
+    for (iter <- 1 to ITERATIONS) {
+      val intermediate = graph.join(ranks)
+                  .flatMap(line => Seq((line._1, 0.asInstanceOf[Float]), (line._2._1, line._2._2)))
+                  .aggregateByKey(0.asInstanceOf[Float])(_ + _, _ + _)
+      val zeroRank = intermediate.collectAsMap().get(0).get
+      ranks = intermediate.map(line => if (line._1 != 0) (line._1, line._2 + zeroRank/(k*k)) else (0, 0.asInstanceOf[Float]))
+    }
 
-    val textFile = sc.textFile(args(0))
-    val counts = textFile.flatMap(line => line.split(" "))
-                 .map(word => (word, 1))
-                 .reduceByKey(_ + _)
-    counts.saveAsTextFile(args(1))
+    ranks.saveAsTextFile(args(1))
   }
 }
