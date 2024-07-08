@@ -4,6 +4,8 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.log4j.LogManager
 import org.apache.log4j.Level
+import org.apache.spark.storage.StorageLevel
+import java.io.PrintWriter
 
 object PageRankMain {
   
@@ -15,7 +17,7 @@ object PageRankMain {
     }
     val conf = new SparkConf().setAppName("Word Count")
     val sc = new SparkContext(conf)
-    val k = 10
+    val k = 100
     val ITERATIONS = 10
 		// Delete output directory, only to ease local development; will not work on AWS. ===========
 //    val hadoopConf = new org.apache.hadoop.conf.Configuration
@@ -33,6 +35,7 @@ object PageRankMain {
                  .union(fakeEdges)
 
     var ranks = sc.parallelize(for (i <- 0 to k*k) yield (i, if (i==0) 0 else 1.asInstanceOf[Float]/(k*k)))
+    var outputString = ""
 
     for (iter <- 1 to ITERATIONS) {
       val intermediate = graph.join(ranks)
@@ -40,8 +43,14 @@ object PageRankMain {
                   .aggregateByKey(0.asInstanceOf[Float])(_ + _, _ + _)
       val zeroRank = intermediate.collectAsMap().get(0).get
       ranks = intermediate.map(line => if (line._1 != 0) (line._1, line._2 + zeroRank/(k*k)) else (0, 0.asInstanceOf[Float]))
+      outputString = outputString.concat("\n\n")
+      outputString = outputString.concat(f"Iteration $iter%s")
+      outputString = outputString.concat("\n\n")
+      outputString = outputString.concat(ranks.toDebugString)
+      System.out.println(ranks.toDebugString)
+      ranks.persist(StorageLevel.MEMORY_AND_DISK)
     }
-
     ranks.saveAsTextFile(args(1))
+    Some(new PrintWriter("./output/log.txt")).foreach{p => p.write(outputString); p.close}
   }
 }
