@@ -39,18 +39,23 @@ object PageRankMain {
 
     for (iter <- 1 to ITERATIONS) {
       val intermediate = graph.join(ranks)
+                  // here we dump ALL of a node's value into ALL of its neighbors, which works due to the special graph structure
                   .flatMap(line => Seq((line._1, 0.asInstanceOf[Float]), (line._2._1, line._2._2)))
                   .aggregateByKey(0.asInstanceOf[Float])(_ + _, _ + _)
       val zeroRank = intermediate.collectAsMap().get(0).get
-      ranks = intermediate.map(line => if (line._1 != 0) (line._1, line._2 + zeroRank/(k*k)) else (0, 0.asInstanceOf[Float]))
+      ranks = intermediate.map(line => if (line._1 != 0) (line._1, line._2 + zeroRank/(k*k)) else {
+        System.out.println(f"Iteration $iter%s")
+        (0, 0.asInstanceOf[Float])
+      })
       outputString = outputString.concat("\n\n")
       outputString = outputString.concat(f"Iteration $iter%s")
       outputString = outputString.concat("\n\n")
       outputString = outputString.concat(ranks.toDebugString)
-      System.out.println(ranks.toDebugString)
-      ranks.persist(StorageLevel.MEMORY_AND_DISK)
+      //System.out.println(ranks.toDebugString)
+      //ranks.persist(StorageLevel.MEMORY_AND_DISK)
     }
-    ranks.saveAsTextFile(args(1))
+    ranks.sortByKey().saveAsTextFile(args(1))
     Some(new PrintWriter("./output/log.txt")).foreach{p => p.write(outputString); p.close}
+    //val sum = ranks.map(line => (1, line._2)).reduceByKey(_ + _).map(_._2).foreach(println)
   }
 }
