@@ -44,7 +44,7 @@ object PageRankMain {
                   .aggregateByKey(0.asInstanceOf[Float])(_ + _, _ + _)
       val zeroRank = intermediate.collectAsMap().get(0).get
       ranks = intermediate.map(line => if (line._1 != 0) (line._1, line._2 + zeroRank/(k*k)) else {
-        System.out.println(f"Iteration $iter%s")
+        //System.out.println(f"Iteration $iter%s")
         (0, 0.asInstanceOf[Float])
       })
       outputString = outputString.concat("\n\n")
@@ -55,7 +55,7 @@ object PageRankMain {
       //ranks.persist(StorageLevel.MEMORY_AND_DISK)
     }
     ranks.sortByKey().saveAsTextFile(args(1))
-    Some(new PrintWriter("./output/log.txt")).foreach{p => p.write(outputString); p.close}
+    //Some(new PrintWriter("./output/log.txt")).foreach{p => p.write(outputString); p.close}
     //val sum = ranks.map(line => (1, line._2)).reduceByKey(_ + _).map(_._2).foreach(println)
   }
 }
