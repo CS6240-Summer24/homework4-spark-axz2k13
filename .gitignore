@@ -6,3 +6,4 @@
 /.metals
 /.bloop
 *.jar
+input/com-lj.ungraph.txt
