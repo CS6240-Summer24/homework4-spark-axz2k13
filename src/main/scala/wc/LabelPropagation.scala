@@ -18,7 +18,7 @@ object LabelPropagationMain {
     }
     val conf = new SparkConf().setAppName("Word Count")
     val sc = new SparkContext(conf)
-    val MAX = -1
+    val MAX = 100000
 		// Delete output directory, only to ease local development; will not work on AWS. ===========
 //    val hadoopConf = new org.apache.hadoop.conf.Configuration
 //    val hdfs = org.apache.hadoop.fs.FileSystem.get(hadoopConf)
@@ -33,14 +33,14 @@ object LabelPropagationMain {
                  .sortBy(line => line._2)
                  .zipWithIndex()
                  .map(line => (line._1._1, line._2))
+    //counts.saveAsTextFile(args(1))
     // expensive operation to "rename" each node according to its ranking by edges
-    // also reverses each edge but we don't care because it's an undirected graph
     var edges = textFile.map(line => (line.split("\t")(0).toInt, line.split("\t")(1).toInt))
                  .filter(line => MAX < 0 || (line._1 <= MAX && line._2 <= MAX))
-                 .join(counts) // counts line
-                 .map(line => (line._2._1, line._2._2)) // counts line
-                 .join(counts) // counts line
-                 .map(line => (line._2._2.asInstanceOf[Int], line._2._1.asInstanceOf[Int])) // counts line
+                //  .join(counts) // counts line
+                //  .map(line => (line._2._1, line._2._2)) // counts line
+                //  .join(counts) // counts line
+                //  .map(line => (line._2._1.toInt, line._2._2.toInt)) // counts line
                  .flatMap(line => Seq(line, (line._2, line._1)))
                  .persist() // we reuse this RDD every iteration
     // expensive operation to "rename" each node according to its ranking by edges
@@ -48,8 +48,8 @@ object LabelPropagationMain {
                  .distinct()
                  .map(word => (word.toInt, word.toInt))
                  .filter(line => line._1 <= MAX || MAX < 0)
-                 .join(counts) // counts line
-                 .map(line => (line._2._2.asInstanceOf[Int], line._2._2.asInstanceOf[Int])) // counts line
+                //  .join(counts) // counts line
+                //  .map(line => (line._2._2.toInt, line._2._2.toInt)) // counts line
     var stop = false
     var iterations = 0
     while (!stop) {
@@ -81,8 +81,9 @@ object LabelPropagationMain {
     val componentEdges = nodes.join(edges).map(line => (line._2._1, 1)).reduceByKey(_ + _)
     // components is component label, (size, # of edges)
     val components = componentSize.join(componentEdges)
-                                  .join(counts.map(line => (line._2.asInstanceOf[Int], line._1))) // counts line
-                                  .map(line => (line._2._2, (line._2._1._1, line._2._1._2/2))) // counts line
+                                  // .join(counts.map(line => (line._2.toInt, line._1))) // counts line
+                                  // .map(line => (line._2._2, (line._2._1._1, line._2._1._2))) // counts line
+                                  .map(line => (line._1, (line._2._1, line._2._2/2)))
                                   .sortBy(line => line._2._1)
     components.saveAsTextFile(args(1))
     System.out.println("Found components count:")
