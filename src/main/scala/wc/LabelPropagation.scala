@@ -18,7 +18,7 @@ object LabelPropagationMain {
     }
     val conf = new SparkConf().setAppName("Word Count")
     val sc = new SparkContext(conf)
-    val MAX = 100000
+    val MAX = -1
 		// Delete output directory, only to ease local development; will not work on AWS. ===========
 //    val hadoopConf = new org.apache.hadoop.conf.Configuration
 //    val hdfs = org.apache.hadoop.fs.FileSystem.get(hadoopConf)
@@ -60,9 +60,9 @@ object LabelPropagationMain {
       val outgoingEdges = nodes.join(edges).map(line => (line._2._2, (line._1, line._2._1)))
       
       val assertingLabels = outgoingEdges.join(nodes).map(line => (line._2._1, line._2._2))
-                                .reduceByKey((a, b) => if (a < b) a else b)
+                                .reduceByKey((a, b) => if (a > b) a else b)
                                 .map(line => {
-                                  if (line._2 < line._1._2) {
+                                  if (line._2 > line._1._2) {
                                     changes.add(1)
                                     //System.out.println("Change found")
                                     (line._1._1, line._2)
@@ -85,7 +85,9 @@ object LabelPropagationMain {
                                   .map(line => (line._2._2, (line._2._1._1, line._2._1._2/2))) // counts line
                                   .sortBy(line => line._2._1)
     components.saveAsTextFile(args(1))
+    System.out.println("Found components count:")
     System.out.println(components.count())
+    System.out.println("Total iterations:")
     System.out.println(iterations)
   }
 }

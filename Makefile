@@ -17,12 +17,12 @@ hdfs.input=input
 hdfs.output=output
 # AWS EMR Execution
 aws.emr.release=emr-6.10.0
-aws.bucket.name=cs6240-hw4-spark-bucket
+aws.bucket.name=cs6240-project-bucket
 aws.input=input
 aws.output=output
 aws.log.dir=log
-aws.num.nodes=5
-aws.instance.type=r5.2xlarge
+aws.num.nodes=4
+aws.instance.type=m5.xlarge
 aws.region = us-east-1
 # -----------------------------------------------------------
 
