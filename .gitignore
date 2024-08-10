@@ -7,3 +7,4 @@
 /.bloop
 *.jar
 input/com-lj.ungraph.txt
+/input
